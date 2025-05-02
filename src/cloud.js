@@ -15,21 +15,23 @@ export class Cloud extends Group {
             spheresPerCloud = 20,
             sphereRadius = 1,
             sphereScaleRange = [0.5, 1.5], // random scale multiplier
-            spread = 3 // how far each sphere can stray from the origin
+            spread = 2.5 // how far each sphere can stray from the origin
         } = options;
-        const segments = [16, 16];
+        const segments = [128, 128];
         const cloudColor = 0xffffff;
         const geometry = new SphereGeometry(sphereRadius, segments[0], segments[1]);
         const material = new MeshStandardMaterial({
             color: cloudColor,
             flatShading: true,
             transparent: true,
-            opacity: 0.8
+            opacity: 0.9
         });
 
         // set up/assign vals to each sphere generated
         for (let i = 0; i < spheresPerCloud; i++) {
             const mesh = new Mesh(geometry, material);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
 
             // random position within acceptable spread range
             mesh.position.set(

@@ -3,3 +3,7 @@ body {
   margin: 0;
   padding: 0;
 }
+
+#app {
+ background: linear-gradient(to top, #cce0ff 0%, #ffffff 100%); 
+}
