@@ -1,6 +1,10 @@
-// Template from https://codesandbox.io/p/sandbox/threejs-starter-template-96kxr?file=%2Fsrc%2Findex.js
-
-import * as THREE from 'three';
+import { 
+  WebGLRenderer, 
+  Scene,
+  PerspectiveCamera,
+  AmbientLight,
+  DirectionalLight} from "three";
+import { Cloud } from "./src/cloud";
 
 let app = {
   el: document.getElementById("app"),
@@ -10,29 +14,29 @@ let app = {
 }
 
 const init = () => {
-  app.renderer = new THREE.WebGLRenderer();
+  app.renderer = new WebGLRenderer();
   console.log(app.renderer);
   app.renderer.setSize ( window.innerWidth, window.innerHeight);
   app.el.appendChild (app.renderer.domElement);
 
-  app.scene = new THREE.Scene();
+  app.scene = new Scene();
+  app.camera =  new PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
-  app.camera =  new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+  const ambient = new AmbientLight(0xffffff, 0.6);
+  app.scene.add(ambient);
 
-  // Add blue sphere to the scene
-  const geometry = new THREE.SphereGeometry(1, 32, 32);
-  const material = new THREE.MeshBasicMaterial({ color: 0x0000ff });
-  const sphere = new THREE.Mesh(geometry, material);
-  app.scene.add(sphere);
+  const sun = new DirectionalLight(0xffee88, 1);
+  sun.position.set(5, 10, 2);
+  app.scene.add(sun);
 
-  // Move camera to view the sphere
-  app.camera.position.z = 5;
+  // clouds --> two in foregroud, the rest scattered in the background
+  const mainCloud1 = new Cloud({sphereCount: 25, spread: 4});
+  mainCloud1.position.set(-5, 3, -10);
+  app.scene.add(mainCloud1);
 
-  // Add white light to the scene
-  const light = new THREE.DirectionalLight(0xffffff, 1);
-  light.position.set(0, 5, 10);
-  app.scene.add(light);
-
+  const mainCloud2 = new Cloud({sphereCount: 30, spread: 5});
+  mainCloud2.position.set(2, 4, -8);
+  app.scene.add(mainCloud2);
 };
 
 const render = () => {

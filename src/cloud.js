@@ -1,9 +1,12 @@
-import {Group, Mesh, SphereGeomettry, MeshStandardMaterial } from 'three';
-import random from Math;
+import {
+    Group, 
+    Mesh, 
+    SphereGeometry, 
+    MeshStandardMaterial} from 'three';
 
 // extend the group class to cloud because we want groups of clouds, not just single clouds
 export class Cloud extends Group {
-    constructor() {
+    constructor(options = {}) {
         // parents
         super();
 
@@ -14,8 +17,8 @@ export class Cloud extends Group {
             sphereScaleRange = [0.5, 1.5], // random scale multiplier
             spread = 3 // how far each sphere can stray from the origin
         } = options;
-        const segments = [16, 16]
-        const cloudColor = "0xffffff"
+        const segments = [16, 16];
+        const cloudColor = 0xffffff;
         const geometry = new SphereGeometry(sphereRadius, segments[0], segments[1]);
         const material = new MeshStandardMaterial({
             color: cloudColor,
@@ -25,22 +28,22 @@ export class Cloud extends Group {
         });
 
         // set up/assign vals to each sphere generated
-        for (i in spheresPerCloud) {
+        for (let i = 0; i < spheresPerCloud; i++) {
             const mesh = new Mesh(geometry, material);
 
             // random position within acceptable spread range
             mesh.position.set(
-                (random - 0.5) * spread,
-                (random - 0.5) * spread * 0.6,
-                (random - 0.5) * spread
+                (Math.random() - 0.5) * spread,
+                (Math.random() - 0.5) * spread * 0.6,
+                (Math.random() - 0.5) * spread
             );
 
             // random scale within acceptable scale range
-            const scale = random * (sphereScaleRange[1] - sphereScaleRange[0]) + sphereScaleRange[0];
+            const scale = Math.random() * (sphereScaleRange[1] - sphereScaleRange[0]) + sphereScaleRange[0];
             mesh.scale.set(scale, scale, scale);
 
             // add cloud sphere to group
             this.add(mesh);
         }
-    }
+    };
 }
