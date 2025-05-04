@@ -1,13 +1,17 @@
+// cloud.js | class to handle cloud creation
+// Garrison Mullen
+
+// imports
 import {
     Group, 
     Mesh, 
     SphereGeometry, 
     MeshStandardMaterial} from 'three';
 
-// extend the group class to cloud because we want groups of clouds, not just single clouds
+// a single cloud here is just a bunch of spheres clumped together nicely
 export class Cloud extends Group {
+    // extend the group class because a cloud here is just a *group* of spheres
     constructor(options = {}) {
-        // parents
         super();
 
         // constants, geometry, mats
@@ -15,13 +19,12 @@ export class Cloud extends Group {
             spheresPerCloud = 25,
             sphereRadius = 1,
             sphereScaleRange = [0.5, 1.5], // random scale multiplier
-            spread = 1 // how far each sphere can stray from the origin
+            spread = 1 // how far each sphere can stray from the origin by default
         } = options;
-        const segments = [100, 100];
-        const cloudColor = 0xffffff;
+        const segments = [100, 100]; // detail per sphere per cloud (tweak for performance)
         const geometry = new SphereGeometry(sphereRadius, segments[0], segments[1]);
         const material = new MeshStandardMaterial({
-            color: cloudColor,
+            color: 0xffffff,
             flatShading: true,
             transparent: true,
         });
@@ -30,16 +33,12 @@ export class Cloud extends Group {
         for (let i = 0; i < spheresPerCloud; i++) {
             // random scale within acceptable scale range
             const scale = Math.random() * (sphereScaleRange[1] - sphereScaleRange[0]) + sphereScaleRange[0];
-
-  
-            // material.opacity = 0.7 + (Math.random() * 0.8);
-            // material.opacity = scale / (sphereScaleRange[1] - 0.2);
-            material.opacity = 1;
+            material.opacity = 1; // i really wanted to tweak opacity to look more "realistic" but with how these are generated full opaque looks best i think
             const mesh = new Mesh(geometry, material);
             mesh.castShadow = true;
             mesh.receiveShadow = true;
 
-            // random position within acceptable spread range
+            // random position/scale within acceptable spread range
             mesh.position.set(
                 (Math.random() - 0.5) * spread,
                 (Math.random() - 0.5) * spread * 0.4,
@@ -47,9 +46,7 @@ export class Cloud extends Group {
             );
             mesh.scale.set(scale, scale * 0.75, scale);
 
-            const mergedGeo = 
-
-            // add cloud sphere to group
+            // add cloud sphere to object
             this.add(mesh);
         }
     };
