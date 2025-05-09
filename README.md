@@ -3,7 +3,9 @@
 ## A Program by Garrison Mullen
 
 ECU Computer Graphics (CSCI 4820/6820)
+
 Final Project | Spring 2025
+
 Dr. David Hart
 
 *To demo this program, download the .html file included and open it in a web browser. No terminal-based localhost server setup needed yay*
