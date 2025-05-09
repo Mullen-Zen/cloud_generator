@@ -7,9 +7,107 @@
 <head>
 	<title>Cloud Generator</title>
 	<meta charset="UTF-8" />
-	<link rel="stylesheet" href="./src/styles.css">
 	<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@600&display=swap" rel="stylesheet">
 </head>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.min.js"></script>
+<script>
+	// cloud.js | class to handle cloud creation
+	// Garrison Mullen
+
+	// a single cloud here is just a bunch of spheres clumped together nicely
+	class Cloud extends THREE.Group {
+		// extend the group class because a cloud here is just a *group* of spheres
+		constructor(options = {}) {
+			super();
+
+			// constants, geometry, mats
+			const {
+				spheresPerCloud = 25,
+				sphereRadius = 1,
+				sphereScaleRange = [0.5, 1.5], // random scale multiplier
+				spread = 1 // how far each sphere can stray from the origin by default
+			} = options;
+			const segments = [100, 100]; // detail per sphere per cloud (tweak for performance)
+			const geometry = new THREE.SphereGeometry(sphereRadius, segments[0], segments[1]);
+			const material = new THREE.MeshStandardMaterial({
+				color: 0xffffff,
+				flatShading: true,
+				transparent: true,
+				opacity: 1
+			});
+
+			// set up/assign vals to each sphere generated
+			for (let i = 0; i < spheresPerCloud; i++) {
+				// random scale within acceptable scale range
+				const scale = Math.random() * (sphereScaleRange[1] - sphereScaleRange[0]) + sphereScaleRange[0];
+				const mesh = new THREE.Mesh(geometry, material);
+				mesh.castShadow = true;
+				mesh.receiveShadow = true;
+
+				// random position/scale within acceptable spread range
+				mesh.position.set(
+					(Math.random() - 0.5) * spread,
+					(Math.random() - 0.5) * spread * 0.4,
+					(Math.random() - 0.5) * spread
+				);
+				mesh.scale.set(scale, scale * 0.75, scale);
+
+				// add cloud sphere to object
+				this.add(mesh);
+			}
+		};
+	}
+</script>
+
+<style>
+	/* styles.css */
+	/* Garrison Mullen */
+
+	body {
+	font-family: sans-serif;
+	margin: 0;
+	padding: 0;
+	}
+
+	#hud {
+	position: absolute;
+	bottom: 1rem;
+	left: 1rem;
+	z-index: 10;
+	font-family: 'Quicksand', sans-serif;
+	font-size: 8rem;
+	}
+	#hud:hover {
+	font-size: 12rem;
+	}
+
+	#clock {
+	background: rgba(255, 255, 255, 0.07);
+	border: 2px solid rgba(255, 255, 255, 0.15);
+	border-radius: 30px;
+	padding: 1.2rem 2.4rem;
+	color: #f0f0f0;
+	font-weight: 700;
+	font-family: 'Quicksand', sans-serif;
+	letter-spacing: 2px;
+	box-shadow: 0 4px 15px rgba(255, 255, 255, 0.12);
+	text-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
+	backdrop-filter: blur(8px);
+	transition: all 0.3s ease;
+	user-select: none;
+	}
+
+	#watermark {
+	position: fixed;
+	bottom: 10px;
+	right: 15px;
+	font-family: 'Quicksand', sans-serif;
+	font-size: 14px;
+	color: rgba(0, 0, 0, 0.4);
+	pointer-events: none;
+	}
+</style>
 
 <body id="bod">
 	<div id="app">
@@ -18,7 +116,103 @@
 		</div>
 	</div>
 	<div id="watermark">a project by garrison</div>
-	<script type="module" src="main.js"></script>
+	<script>	
+		// main.js
+		// Garrison Mullen
+	
+		let app = {
+		el: document.getElementById("app"),
+		scene: null,
+		renderer: null,
+		camera: null
+		}
+		let camAngle = 0;
+	
+		// creates a set number of clouds in a given area
+		function addCloudLayer(count, yRange, spread, density = 1.0) {
+		for (let i = 0; i < count; i++) {
+			const cloud = new Cloud({
+			spheresPerCloud: Math.floor(15 + Math.random() * 15 * density),
+			spread: spread + Math.random() * 2,
+			});
+	
+			cloud.position.set((Math.random() - 0.5) * 50, yRange[0] + Math.random() * (yRange[1] - yRange[0]), -30 + Math.random() * 50);
+	
+			app.scene.add(cloud);
+			app.clouds.push(cloud);
+		}
+		}
+	
+		// updates clock element with current time and changes colors to match the time of day
+		function updateClock() {
+		const now = new Date();
+		const hours = now.getHours().toString().padStart(2, "0");
+		const minutes = now.getMinutes().toString().padStart(2, "0");
+		document.getElementById("clock").textContent = `${hours}:${minutes}`;
+	
+		// update fog color and sky gradient to match time of day
+		let tstVal = 0;
+		app.scene.fog = new THREE.Fog((now.getHours() + tstVal <= 5 || now.getHours() + tstVal >= 19) ? 0x1a2e40 : (now.getHours() + tstVal <= 8 || now.getHours() + tstVal >= 17) ? 0xfce9d4 : 0xcce0ff, 10, 50);
+		if (now.getHours() + tstVal <= 5 || now.getHours() + tstVal >= 19) {
+			document.getElementById("bod").style.background = "linear-gradient(to top, #0a1c2c 0%, #1a2e40 100%)";
+		} else if (now.getHours() + tstVal <= 8 || now.getHours() + tstVal >= 17) {
+			document.getElementById("bod").style.background = "linear-gradient(to top, #c2875c 0%, #fce9d4 30%, #cce0ff 100%)";
+		} else document.getElementById("bod").style.background = "linear-gradient(to top, #d1eaf5 0%, #ffffff 100%)";
+		}
+	
+		const init = () => {
+		app.renderer = new THREE.WebGLRenderer({alpha: true});
+		app.renderer.setSize(window.innerWidth, window.innerHeight);
+		app.el.appendChild (app.renderer.domElement);
+	
+		app.scene = new THREE.Scene();
+		app.camera =  new THREE.PerspectiveCamera( 65, window.innerWidth / window.innerHeight, 0.1, 1000 );
+		app.camera.position.set(-6,-15,0);
+		app.camera.lookAt(-10,0,-10);
+	
+		const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+		app.scene.add(ambient);
+	
+		const sun = new THREE.DirectionalLight(0xffffdd, 1);
+		sun.position.set(-6, 30, 30);
+		sun.target.position.set(-10, 0, -10);
+		sun.castShadow = true;
+		app.scene.add(sun);
+		app.scene.add(sun.target);
+	
+		app.clouds = []
+		addCloudLayer(40, [-.5, 2.5], 3); // low
+		addCloudLayer(30, [3.0, 5.0], 3);  // mid
+		addCloudLayer(20, [5.5, 7.5], 4);  // high
+		addCloudLayer(5, [2, 4], 2); // another small group
+	
+	
+		};
+	
+		const render = () => {
+		requestAnimationFrame(render);
+	
+		app.clouds.forEach((cloud) => {
+			const speed = 0.01 * (1 - cloud.position.y / 10) + 0.01;
+			cloud.position.z += speed; // higher clouds move slower and v.v.
+			cloud.rotation.y += Math.random() * .0005 + 0.0005;
+	
+			// respawn clouds as they move out of sight
+			if (cloud.position.z > 10 || cloud.position.y > 20) {
+			cloud.position.x = (Math.random() - 0.5) * 70
+			cloud.position.y = 3 + Math.random() * 6;
+			cloud.position.z = -50 + Math.random() * 10;
+			}
+		});
+	
+		app.renderer.render(app.scene, app.camera);
+		};
+	
+		init();
+		render();
+		setInterval(updateClock, 1000);
+		updateClock();
+	</script>
 </body>
 
 </html>
